@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.soob1</groupId>
-    <artifactId>rest-api-study</artifactId>
+    <artifactId>spring-rest-api-study</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>rest-api-study</name>
+    <name>spring-rest-api-study</name>
     <description>Demo project for Spring Boot</description>
     <properties>
         <java.version>11</java.version>
