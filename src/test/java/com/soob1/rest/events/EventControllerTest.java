@@ -1,12 +1,13 @@
 package com.soob1.rest.events;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -20,7 +21,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
-@WebMvcTest
+@SpringBootTest
+@AutoConfigureMockMvc
 public class EventControllerTest {
 
 	@Autowired
@@ -29,13 +31,11 @@ public class EventControllerTest {
 	@Autowired
 	ObjectMapper objectMapper;
 
-	@MockBean
-	EventRepository eventRepository;
-
 	@Test
+	@DisplayName("이벤트 생성")
 	public void createEvent() throws Exception {
 
-		Event event = Event.builder()
+		EventDto eventDto = EventDto.builder()
 				.name("spring")
 				.description("rest api development with spring")
 				.beginEnrollmentDateTime(LocalDateTime.of(2021, 8, 21, 16, 0))
@@ -48,17 +48,45 @@ public class EventControllerTest {
 				.location("강남역")
 				.build();
 
-		event.setId(1);
-		Mockito.when(eventRepository.save(event)).thenReturn(event);
+		mockMvc.perform(post("/api/events")
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaTypes.HAL_JSON)
+				.content(objectMapper.writeValueAsString(eventDto)))
+				.andDo(print())
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("id").exists())
+				.andExpect(header().exists(HttpHeaders.LOCATION))
+				.andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
+				.andExpect(jsonPath("id").value(Matchers.not(2)))
+				.andExpect(jsonPath("free").value(Matchers.not(true)))
+				.andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT.name()));
+	}
+
+	@Test
+	@DisplayName("이벤트 생성 시 입력값 제한")
+	public void createEvent_Bad_Request() throws Exception {
+
+		Event event = Event.builder()
+				.id(2)
+				.name("spring")
+				.description("rest api development with spring")
+				.beginEnrollmentDateTime(LocalDateTime.of(2021, 8, 21, 16, 0))
+				.closeEnrollmentDateTime(LocalDateTime.of(2021, 8, 22, 16, 0))
+				.beginEventDateTime(LocalDateTime.of(2021, 8, 23, 16, 0))
+				.endEventDateTime(LocalDateTime.of(2021, 8, 24, 16, 0))
+				.basePrice(100)
+				.maxPrice(200)
+				.limitOfEnrollment(100)
+				.location("강남역")
+				.free(true)
+				.eventStatus(EventStatus.PUBLISHED)
+				.build();
 
 		mockMvc.perform(post("/api/events")
 				.contentType(MediaType.APPLICATION_JSON)
 				.accept(MediaTypes.HAL_JSON)
 				.content(objectMapper.writeValueAsString(event)))
 				.andDo(print())
-				.andExpect(status().isCreated())
-				.andExpect(jsonPath("id").exists())
-				.andExpect(header().exists(HttpHeaders.LOCATION))
-				.andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE));
+				.andExpect(status().isBadRequest());
 	}
 }
