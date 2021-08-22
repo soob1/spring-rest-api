@@ -3,6 +3,7 @@ package com.soob1.rest.events;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.hateoas.MediaTypes;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.Errors;
@@ -39,7 +40,9 @@ public class EventController {
 		event.update();
 		Event savedEvent = eventRepository.save(event);
 		URI createdUri = linkTo(EventController.class).slash(savedEvent.getId()).toUri();
-		return ResponseEntity.created(createdUri).body(savedEvent);
+		EventResource eventResource = new EventResource(savedEvent);
+
+		return ResponseEntity.created(createdUri).body(eventResource);
 	}
 
 }
