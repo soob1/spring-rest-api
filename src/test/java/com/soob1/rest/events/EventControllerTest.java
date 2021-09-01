@@ -288,7 +288,7 @@ public class EventControllerTest extends BaseControllerTest {
 	private Event generateEvent(int index) {
 		Event event = Event.builder()
 				.name("event " + index)
-				.description("rest api development with spring")
+				.description("test event")
 				.beginEnrollmentDateTime(LocalDateTime.of(2021, 8, 21, 16, 0))
 				.closeEnrollmentDateTime(LocalDateTime.of(2021, 8, 22, 16, 0))
 				.beginEventDateTime(LocalDateTime.of(2021, 8, 23, 16, 0))
