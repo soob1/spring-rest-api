@@ -30,12 +30,12 @@ public class EventController {
 
 	@PostMapping
 	public ResponseEntity createEvent(@RequestBody @Valid EventDto eventDto, Errors errors) {
-		if(errors.hasErrors()) {
+		if (errors.hasErrors()) {
 			return badRequest(errors);
 		}
 
 		eventValidator.validate(eventDto, errors);
-		if(errors.hasErrors()) {
+		if (errors.hasErrors()) {
 			return badRequest(errors);
 		}
 
@@ -71,6 +71,37 @@ public class EventController {
 		Event event = optionalEvent.get();
 		EventResource eventResource = new EventResource(event);
 		eventResource.add(Link.of("/docs/index.html#resources-events-get").withRel("profile"));
+		return ResponseEntity.ok(eventResource);
+	}
+
+	@PutMapping("/{id}")
+	public ResponseEntity updateEvent(@PathVariable Integer id,
+									  @RequestBody @Valid EventDto eventDto,
+									  Errors errors) {
+		// 이벤트가 존재하는지 확인
+		Optional<Event> optionalEvent = eventRepository.findById(id);
+		if (optionalEvent.isEmpty()) {
+			return ResponseEntity.notFound().build();
+		}
+
+		// 입력값이 비어있는 경우 에러 처리
+		if (errors.hasErrors()) {
+			return badRequest(errors);
+		}
+
+		// 입력값이 잘못된 경우 에러 처리
+		eventValidator.validate(eventDto, errors);
+		if (errors.hasErrors()) {
+			return badRequest(errors);
+		}
+
+		Event event = optionalEvent.get();
+		modelMapper.map(eventDto, event);
+		Event savedEvent = eventRepository.save(event);
+
+		EventResource eventResource = new EventResource(savedEvent);
+		eventResource.add(Link.of("/docs/index.html#resources-events-update").withRel("profile"));
+
 		return ResponseEntity.ok(eventResource);
 	}
 

@@ -5,6 +5,7 @@ import com.soob1.rest.common.RestDocsConfiguration;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -25,8 +26,7 @@ import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.li
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -46,6 +46,9 @@ public class EventControllerTest {
 
 	@Autowired
 	EventRepository eventRepository;
+
+	@Autowired
+	ModelMapper modelMapper;
 
 	@Test
 	@DisplayName("이벤트 생성")
@@ -232,11 +235,96 @@ public class EventControllerTest {
 				.andExpect(status().isNotFound());
 	}
 
+	@Test
+	@DisplayName("이벤트 수정")
+	public void updateEvent() throws Exception {
+		// given
+		Event event = this.generateEvent(1);
+
+		EventDto eventDto = modelMapper.map(event, EventDto.class);
+		String eventName = "Updated Event";
+		eventDto.setName(eventName);
+
+		// when & then
+		mockMvc.perform(put("/api/events/{id}", event.getId())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(eventDto)))
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("name").value(eventName))
+				.andExpect(jsonPath("_links.self").exists());
+	}
+
+	@Test
+	@DisplayName("입력값이 비어있는 경우 이벤트 수정 실패")
+	public void updateEvent_Bad_Request_Empty_Input() throws Exception {
+		// given
+		Event event = this.generateEvent(1);
+
+		EventDto eventDto = new EventDto();
+
+		// when & then
+		mockMvc.perform(put("/api/events/{id}", event.getId())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(eventDto)))
+				.andDo(print())
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	@DisplayName("입력값이 잘못된 경우 이벤트 수정 실패")
+	public void updateEvent_Bad_Request_Wrong_Input() throws Exception {
+		// given
+		Event event = this.generateEvent(1);
+
+		EventDto eventDto = modelMapper.map(event, EventDto.class);
+		eventDto.setBasePrice(20000);
+		eventDto.setMaxPrice(1000);
+
+		// when & then
+		mockMvc.perform(put("/api/events/{id}", event.getId())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(eventDto)))
+				.andDo(print())
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	@DisplayName("존재하지 않는 이벤트 수정 실패")
+	public void updateEvent404() throws Exception {
+		// given
+		Event event = this.generateEvent(1);
+		EventDto eventDto = modelMapper.map(event, EventDto.class);
+
+		mockMvc.perform(put("/api/events/{id}", 123123)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(eventDto)))
+				.andDo(print())
+				.andExpect(status().isNotFound());
+	}
+
+	@Test
+	@DisplayName("이벤트 수정 권한 없음")
+	public void updateEvent_Permission_Denied() {
+
+	}
+
 	// 이벤트 생성
 	private Event generateEvent(int index) {
 		Event event = Event.builder()
-				.name("event" + index)
-				.description("test event")
+				.name("event " + index)
+				.description("rest api development with spring")
+				.beginEnrollmentDateTime(LocalDateTime.of(2021, 8, 21, 16, 0))
+				.closeEnrollmentDateTime(LocalDateTime.of(2021, 8, 22, 16, 0))
+				.beginEventDateTime(LocalDateTime.of(2021, 8, 23, 16, 0))
+				.endEventDateTime(LocalDateTime.of(2021, 8, 24, 16, 0))
+				.basePrice(100)
+				.maxPrice(200)
+				.limitOfEnrollment(100)
+				.location("강남역")
+				.free(false)
+				.offline(true)
+				.eventStatus(EventStatus.DRAFT)
 				.build();
 		eventRepository.save(event);
 
