@@ -6,8 +6,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -22,10 +22,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class AccountServiceTest {
 
 	@Autowired
-	UserDetailsService accountService;
+	AccountService accountService;
 
 	@Autowired
-	AccountRepository accountRepository;
+	PasswordEncoder passwordEncoder;
 
 	@Test
 	@DisplayName("사용자 인증")
@@ -39,14 +39,14 @@ class AccountServiceTest {
 				.password(password)
 				.roles(Set.of(AccountRole.ADMIN, AccountRole.USER))
 				.build();
-		accountRepository.save(account);
+		accountService.saveAccount(account);
 
 		// when
 		UserDetails userDetails = accountService.loadUserByUsername(email);
 
 		// then
 		assertThat(userDetails.getUsername()).isEqualTo(email);
-		assertThat(userDetails.getPassword()).isEqualTo(password);
+		assertThat(passwordEncoder.matches(password, userDetails.getPassword())).isTrue();
 	}
 
 	@Test
