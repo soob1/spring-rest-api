@@ -1,4 +1,4 @@
-package com.soob1.rest.events;
+package com.soob1.rest.event;
 
 import com.soob1.rest.common.BaseControllerTest;
 import org.junit.jupiter.api.DisplayName;

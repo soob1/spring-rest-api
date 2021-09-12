@@ -1,4 +1,4 @@
-package com.soob1.rest.events;
+package com.soob1.rest.event;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import org.springframework.hateoas.RepresentationModel;

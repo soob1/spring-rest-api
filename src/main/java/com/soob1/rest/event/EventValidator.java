@@ -1,4 +1,4 @@
-package com.soob1.rest.events;
+package com.soob1.rest.event;
 
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;

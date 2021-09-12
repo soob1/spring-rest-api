@@ -1,4 +1,4 @@
-package com.soob1.rest.events;
+package com.soob1.rest.event;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

@@ -1,6 +1,6 @@
 package com.soob1.rest.index;
 
-import com.soob1.rest.events.EventController;
+import com.soob1.rest.event.EventController;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

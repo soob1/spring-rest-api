@@ -1,4 +1,4 @@
-package com.soob1.rest.accounts;
+package com.soob1.rest.account;
 
 import lombok.*;
 
